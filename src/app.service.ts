@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { count } from 'console';
 import * as fs from 'fs';
 
 @Injectable()
@@ -68,23 +69,39 @@ export class AppService {
             console.log(maxProblem[i]);
           }
 
-          this.calculate(maxProblem);
+          this.calculate(maxProblem,file);
 
         });
       });
     });
   }
-  calculate(problem: number[][]) {
+  calculate(problem: number[][], name: string) {
+    name = name.replace('.txt', '');
     if (this.isSolved(problem)) {
-      console.log("result: ")
+      let counter = 0;
+      let result = 'Result for '+ name+ '\n';
       for (let i = 0; i < problem[problem.length - 1].length; i++) {
-        console.log("x" + i + " " + "=" + problem[problem.length - 1][i]);
+        if (i >= problem[problem.length - 1].length / 2 - 1 && i !== problem[problem.length - 1].length - 2) {
+          if (i === problem[problem.length - 1].length - 1) {
+            result = result + "r" + ": " + problem[problem.length - 1][i]+ '\n';
+            //console.log("r" + ": " + problem[problem.length - 1][i]);
+          } else {
+            result = result + "x" + counter + ": " + problem[problem.length - 1][i] + '\n';
+            //console.log("x" + counter + ": " + problem[problem.length - 1][i]);
+          }
+
+          //console.log(counter);
+          counter++;
+        }
       }
+      fs.writeFileSync('./result/'+ name +'result.txt', result);
+      console.log(result);
       return true;
     } else {
       const pivot = this.findPivot(problem);
       problem = this.calculateMatrix(problem, pivot);
       console.log(problem)
+      this.calculate(problem,name);
     }
     //Here happens the magic!
   }
@@ -94,6 +111,23 @@ export class AppService {
       result.push(problem[pivot.r][i] / problem[pivot.r][pivot.c]);
     }
     problem[pivot.r] = result;
+    for (let i = 0; i < problem.length; i++) {
+      const result = [];
+      for (let j = 0; j < problem[0].length; j++) {
+        let val;
+        if (i != pivot.r) {
+
+          val = -problem[i][pivot.c];
+          //console.log();
+          //console.log(val);
+          result.push(problem[i][j] + val * problem[pivot.r][j]);
+          //console.log(problem[i][j]);//-8 + 8*[] //8 -8*[]
+        }
+      }
+      if (i != pivot.r) {
+        problem[i] = result;
+      }
+    }
     return problem;
   }
   isSolved(problem: number[][]) {
