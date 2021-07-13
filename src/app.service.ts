@@ -18,6 +18,7 @@ export class AppService {
             console.log(error);
             return;
           }
+          //Prepare to read data from the file
           for (let i = 0; i < data.length; i++) {
             data = data.replace(' + ', ' ');
             data = data.replace(' >= ', ' ');
@@ -25,50 +26,41 @@ export class AppService {
             data = data.replace(';', '');
           }
           data = data.replace('min:', '');
+          
+          //read data from prpared file in an Array
           const lines = data.split(/\r?\n/);
           lines.splice(0, 1);
           lines.splice(1, 1);
-          console.log(data);
           for (let i = 0; i < lines.length; i++) {
             for (let j = 0; j < lines[i].length; j++) {
               lines[i] = lines[i].replace('x' + j, '');
             }
           }
+
           let problem = [];
           for (let i = 0; i < lines.length; i++) {
             problem[i] = lines[i].split(' ').map(Number);
             problem[i].shift();
+            
             if (problem[i].length == 0) {
               problem.splice(i, 1);
             }
           }
+
+          //Check how many constrains are included in the problem
           if (problem[0].length > problem.length - 1) {
-            console.log('constrains: ' + (problem.length - 1));
-            console.log('variables: ' + problem[0].length);
             const missingConstrains = problem[0].length - (problem.length - 1);
             problem = this.addConstrains(missingConstrains, problem);
           }
-          console.log("Min:");
-          for (let i = 0; i < problem.length; i++) {
 
-            console.log(problem[i]);
-          }
+          //Transpose the problem to generate a max problem
           let transposedProblem = [];
-          console.log("Transpose: ")
           transposedProblem = this.transpose(problem);
 
-
-          //prepare for last steps //
-          //selbsaufrufende funktion -> pivot = 1 -> rest = 0
-          //find pivot() returns { r, c}
-          //checkfinished() return true
+          //Add Slack Variables to be able to solve the problem
           const maxProblem = this.addSlackVariables(transposedProblem);
-          console.log("Added Slack Variables to Matrix:");
-          for (let i = 0; i < maxProblem.length; i++) {
 
-            console.log(maxProblem[i]);
-          }
-
+          //final steps to calculate the result of the problem
           this.calculate(maxProblem,file);
 
         });
@@ -76,21 +68,22 @@ export class AppService {
     });
   }
   calculate(problem: number[][], name: string) {
+    
     name = name.replace('.txt', '');
+    
+    //Check if the problem is solved
     if (this.isSolved(problem)) {
+      
+      //Save the final result in a file
       let counter = 0;
       let result = 'Result for '+ name+ '\n';
       for (let i = 0; i < problem[problem.length - 1].length; i++) {
         if (i >= problem[problem.length - 1].length / 2 - 1 && i !== problem[problem.length - 1].length - 2) {
           if (i === problem[problem.length - 1].length - 1) {
             result = result + "r" + ": " + problem[problem.length - 1][i]+ '\n';
-            //console.log("r" + ": " + problem[problem.length - 1][i]);
           } else {
             result = result + "x" + counter + ": " + problem[problem.length - 1][i] + '\n';
-            //console.log("x" + counter + ": " + problem[problem.length - 1][i]);
           }
-
-          //console.log(counter);
           counter++;
         }
       }
@@ -98,9 +91,14 @@ export class AppService {
       console.log(result);
       return true;
     } else {
+
+      //find position of the Pivot element
       const pivot = this.findPivot(problem);
+
+      //calculation steps for the matrix
       problem = this.calculateMatrix(problem, pivot);
-      console.log(problem)
+      
+      //repeat the last steps until the problem is solved
       this.calculate(problem,name);
     }
     //Here happens the magic!
@@ -116,12 +114,8 @@ export class AppService {
       for (let j = 0; j < problem[0].length; j++) {
         let val;
         if (i != pivot.r) {
-
           val = -problem[i][pivot.c];
-          //console.log();
-          //console.log(val);
           result.push(problem[i][j] + val * problem[pivot.r][j]);
-          //console.log(problem[i][j]);//-8 + 8*[] //8 -8*[]
         }
       }
       if (i != pivot.r) {
@@ -157,8 +151,6 @@ export class AppService {
         }
       }
     }
-    console.log("Pivot Position: ")
-    console.log({ r: row, c: column });
     return { r: row, c: column };
   }
   addSlackVariables(problem: number[][]) {
@@ -166,13 +158,10 @@ export class AppService {
       problem[problem.length - 1][i] = - (problem[problem.length - 1][i]);
     }
     problem[problem.length - 1].push(0);
-    for (let i = 0; i < problem.length; i++) {
-      console.log(problem[i]);
-    }
     let position = 0;
     for (let i = 0; i < problem.length; i++) {
-      let tmp = problem[i].pop();
-      let length = problem[i].length
+      const tmp = problem[i].pop();
+      const length = problem[i].length
       for (let j = 0; j <= length; j++) {
         if (position == j) {
           problem[i].push(1);
@@ -183,13 +172,10 @@ export class AppService {
       position++;
       problem[i].push(tmp);
     }
-    //prepare objective fcn
-    //add slack variables here!
 
     return problem
   }
   addConstrains(missingConstrains, problem) {
-    console.log(missingConstrains);
     for (let i = 0; i < missingConstrains; i++) {
       problem.push(problem[1]);
     }
