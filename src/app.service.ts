@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { count } from 'console';
 import * as fs from 'fs';
 
 @Injectable()
