@@ -6,7 +6,7 @@ import * as fs from 'fs';
 @Injectable()
 export class AppService {
   getHello(): string {
-    return 'Hello World!';
+    return 'Ping!';
   }
   @Cron('* * * * *')
   solveProblem() {
@@ -60,13 +60,13 @@ export class AppService {
           const maxProblem = this.addSlackVariables(transposedProblem);
 
           //final steps to calculate the result of the problem
-          this.calculate(maxProblem,file);
+          this.calculate(maxProblem,file,null);
 
         });
       });
     });
   }
-  calculate(problem: number[][], name: string) {
+  calculate(problem: number[][], name: string, startDate:Date) {
     
     name = name.replace('.txt', '');
     
@@ -87,10 +87,15 @@ export class AppService {
         }
       }
       fs.writeFileSync('./result/'+ name +'result.txt', result);
+      console.log('-------------------------------\n');
       console.log(result);
+      const time = new Date().getMilliseconds() - startDate.getMilliseconds();
+      console.log("time to solve the problem: "+ time+ "ms");
+      console.log('-------------------------------\n');
       return true;
     } else {
-
+      const startDate = new Date();
+      
       //find position of the Pivot element
       const pivot = this.findPivot(problem);
 
@@ -98,9 +103,8 @@ export class AppService {
       problem = this.calculateMatrix(problem, pivot);
       
       //repeat the last steps until the problem is solved
-      this.calculate(problem,name);
+      this.calculate(problem,name,startDate);
     }
-    //Here happens the magic!
   }
   calculateMatrix(problem: number[][], pivot: { r: number, c: number }) {
     const result = [];
