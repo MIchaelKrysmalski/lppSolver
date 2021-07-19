@@ -8,6 +8,9 @@ export class LppService {
   constructor(private lppHelper: LppHelper) {}
   @Cron('* * * * *')
   solveProblem() {
+    if (!fs.existsSync('./result')) {
+      fs.mkdirSync('./result');
+    }
     fs.readdir('./files', (error, files) => {
       files.forEach((file) => {
         fs.readFile('./files/' + file, 'utf-8', (error, data) => {
