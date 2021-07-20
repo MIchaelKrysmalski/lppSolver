@@ -1,4 +1,4 @@
-1. Um das Projekt initialisieren zu können muss Node.js zunächst installiert sein.
+1. Um das Projekt initialisieren zu können muss Node.js zunächst installiert sein. (Wird benötigt um die nächsten Befehle ausführen zu können)
 2. Nachdem das Projekt installiert wurde, muss über eine Konsole im Dateipfad des Projekts der Befehl 'npm install' durchgeführt werden.
 3. Nun muss der Service gestartet werden. Dabei wird über eine Konsole im Dateipfad des Projekts der Befehl 'npm run start:dev' verwendet.
 4. Wenn der Service fehlerfrei gestartet ist, wird nun jede Minute ein Cronjob ausgeführt, welcher die solveProblem() Methode ausführt.
